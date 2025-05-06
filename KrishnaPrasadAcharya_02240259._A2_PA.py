@@ -1,77 +1,121 @@
-# ========================
-# Pokemon Binder Manager Data
-# ========================
-MAX_POKEDEX = 1025
-CARDS_PER_PAGE = 64
-CARDS_PER_ROW = 8
-binder = {}
+import random
+# Global Score Tracker
+scores = {
+    "guess_game": 0,
+    "rps": 0,
+    "trivia": 0
+}
 
-# ========================
-# Helper Functions
-# ========================
-def calculate_position(pokedex_number):
-    index = pokedex_number - 1
-    page = index // CARDS_PER_PAGE + 1
-    index_on_page = index % CARDS_PER_PAGE
-    row = index_on_page // CARDS_PER_ROW + 1
-    col = index_on_page % CARDS_PER_ROW + 1
-    return page, row, col
-
-# ========================
-# Part B - Pokemon Card Binder Manager
-# ========================
-def pokemon_card_binder_manager():
+# Part A - Games
+def guess_number_game():
+    print("\n--- Guess the Number Game ---")
+    number = random.randint(1, 100)
+    attempts = 0
     while True:
-        print("\n--- Pokemon Card Binder Manager ---")
-        print("1. Add Pokemon card")
-        print("2. Reset binder")
-        print("3. View current placements")
-        print("4. Exit to main menu")
-        choice = input("Select option: ")
-        if choice == "1":
+        try:
+            guess = int(input("Guess a number between 1 and 100: "))
+            if guess < 1 or guess > 100:
+                print("Out of range.")
+                continue
+            attempts += 1
+            if guess == number:
+                print("Correct!")
+                break
+            elif guess < number:
+                print("Too low.")
+            else:
+                print("Too high.")
+        except ValueError:
+            print("Invalid input.")
+    score = max(0, 100 - attempts)
+    print(f"You scored: {score}")
+    scores["guess_game"] += score
+
+def rock_paper_scissors():
+    print("\n--- Rock Paper Scissors ---")
+    choices = ["rock", "paper", "scissors"]
+    user = input("Choose rock, paper, or scissors: ").lower()
+    if user not in choices:
+        print("Invalid choice.")
+        return
+    computer = random.choice(choices)
+    print(f"Computer chose {computer}")
+    if user == computer:
+        print("Draw!")
+    elif (user == "rock" and computer == "scissors") or \
+         (user == "paper" and computer == "rock") or \
+         (user == "scissors" and computer == "paper"):
+        print("You win!")
+        scores["rps"] += 1
+    else:
+        print("You lose!")
+
+def trivia_game():
+    print("\n--- Trivia Pursuit: Bhutan Quiz ---")
+    questions = {
+        "Geography": {
+            "What is the capital city of Bhutan?": ["Thimphu", "Paro", "Punakha", "Phuentsholing"],
+            "Which mountain is the highest in Bhutan?": ["Gangkhar Puensum", "Jomolhari", "Masang Kang", "Black Mountain"]
+        },
+        "History": {
+            "Who was the first King of Bhutan?": ["Ugyen Wangchuck", "Jigme Dorji Wangchuck", "Jigme Singye Wangchuck", "Jigme Khesar Namgyel Wangchuck"],
+            "In which year did Bhutan transition to a constitutional monarchy?": ["2008", "1998", "2010", "2003"]
+        },
+        "Culture": {
+            "What is the national sport of Bhutan?": ["Archery", "Wrestling", "Football", "Cricket"],
+            "Which festival is widely celebrated in Bhutan with mask dances and rituals?": ["Tshechu", "Losar", "Diwali", "Holi"]
+        },
+        "Science": {
+            "Which gas do plants absorb from the atmosphere during photosynthesis?": ["Carbon dioxide", "Oxygen", "Nitrogen", "Hydrogen"]
+        },
+        "Math": {
+            "What is the value of π (pi) approximately?": ["3.14", "2.71", "1.61", "1.41"]
+        }
+    }
+    for category, q_set in questions.items():
+        print(f"\nCategory: {category}")
+        for question, options in q_set.items():
+            print(f"{question}")
+            for i, opt in enumerate(options, 1):
+                print(f"{i}. {opt}")
             try:
-                num = int(input("Enter Pokedex number (1-1025): "))
-                if not 1 <= num <= MAX_POKEDEX:
-                    print("Invalid Pokedex number.")
-                    continue
-                if num in binder:
-                    print("Card already exists in binder.")
-                    page, row, col = binder[num]
-                    print(f"Page: {page}, Row: {row}, Column: {col}, Status: Already exists")
+                answer = int(input("Your choice (1-4): "))
+                if options[answer - 1] == options[0]:
+                    print("Correct!")
+                    scores["trivia"] += 1
                 else:
-                    page, row, col = calculate_position(num)
-                    binder[num] = (page, row, col)
-                    print(f"Page: {page}, Row: {row}, Column: {col}, Status: Added")
-                    if len(binder) == MAX_POKEDEX:
-                        print("You have caught them all!!")
-            except ValueError:
-                print("Please enter a valid number.")
-        elif choice == "2":
-            confirm = input("Type 'CONFIRM' to reset or 'EXIT' to cancel: ")
-            if confirm == "CONFIRM":
-                binder.clear()
-                print("The binder reset was successful!")
-            else:
-                print("Reset cancelled.")
-        elif choice == "3":
-            if not binder:
-                print("The binder is empty.")
-            else:
-                print("Current Binder Contents:")
-                for num in sorted(binder):
-                    page, row, col = binder[num]
-                    print(f"Pokedex #{num}: Page {page}, Row {row}, Column {col}")
-                total = len(binder)
-                percent = (total / MAX_POKEDEX) * 100
-                print(f"Total cards: {total}, Completion: {percent:.1f}%")
-        elif choice == "4":
-            print("Returning to main menu...")
-            break
-        else:
-            print("Invalid option.")
+                    print(f"Wrong! Correct answer is: {options[0]}")
+            except (ValueError, IndexError):
+                print("Invalid input.")
+
+def overall_score():
+    print("\n--- Overall Score ---")
+    for game, score in scores.items():
+        print(f"{game.capitalize().replace('_', ' ')}: {score}")
+    print("")
 
 def main():
-    pokemon_card_binder_manager()
+    while True:
+        print("\n=== Games Menu ===")
+        print("1. Guess Number game")
+        print("2. Rock Paper Scissors")
+        print("3. Trivia Pursuit Game")
+        print("4. Check Current Overall Score")
+        print("0. Exit games menu")
+        choice = input("Enter your choice: ")
+        if choice == "1":
+            guess_number_game()
+        elif choice == "2":
+            rock_paper_scissors()
+        elif choice == "3":
+            trivia_game()
+        elif choice == "4":
+            overall_score()
+        elif choice == "0":
+            print("Exiting games... Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
 
 if __name__ == "__main__":
     main()
